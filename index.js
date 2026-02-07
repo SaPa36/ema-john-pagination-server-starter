@@ -13,7 +13,7 @@ app.use(express.json());
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 //const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.swu9d.mongodb.net/?retryWrites=true&w=majority`;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.deftcj8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -44,6 +44,22 @@ async function run() {
         .toArray();
         res.send(result);
     })
+    
+    app.post('/productByIds', async(req, res) =>{
+      try {
+          const ids = req.body;
+          if (!ids || !Array.isArray(ids)) {
+              return res.status(400).send({ error: "Invalid IDs provided" });
+          }
+          const idWithObjectId = ids.map(id => new ObjectId(id));
+          const query = { _id: { $in: idWithObjectId } };
+          const result = await productCollection.find(query).toArray();
+          res.send(result);
+      } catch (error) {
+          res.status(500).send({ error: "Internal Server Error" });
+      }
+    })
+
 
     app.get('/productsCount', async(req, res) =>{
       const count = await productCollection.estimatedDocumentCount();
